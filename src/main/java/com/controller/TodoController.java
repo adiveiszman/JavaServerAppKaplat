@@ -1,20 +1,26 @@
 package com.controller;
 
-import com.dao.TodoDAO;
-import com.dto.TodoDTO;
+import com.services.TodoService;
+import com.entities.Todo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 public class TodoController {
     public static int requestNumber = 0;
     private static final Logger requestLogger = LoggerFactory.getLogger(TodoController.class);
-    private static final Logger todoLogger = LoggerFactory.getLogger(TodoDAO.class);
+    private static final Logger todoLogger = LoggerFactory.getLogger(TodoService.class);
+    private final TodoService todoService;
+
+    public TodoController(TodoService todoService) {
+        this.todoService = todoService;
+    }
 
     @GetMapping("/todo/health")
     @ResponseBody
@@ -29,13 +35,13 @@ public class TodoController {
 
     @PostMapping("/todo")
     @ResponseBody
-    public ResponseEntity<String> createNewTODO(@RequestBody TodoDTO newTodo) {
+    public ResponseEntity<String> createNewTODO(@RequestBody Todo newTodo) {
         long startTime = System.currentTimeMillis();
         requestNumber++;
         logInfoIncomingRequest(requestNumber, "/todo","POST");
         JSONObject responseJson = new JSONObject();
 
-        if (TodoDAO.isTitleExists(newTodo.getTitle())) {
+        if (todoService.isTitleExists(newTodo.getTitle())) {
             todoLogger.error("Error: TODO with the title [{}] already exists in the system | request #{}", newTodo.getTitle(), requestNumber);
             responseJson.put("errorMessage", "Error: TODO with the title [" + newTodo.getTitle() + "] already exists in the system");
             logDebugIncomingRequest(requestNumber, startTime);
@@ -44,7 +50,7 @@ public class TodoController {
                     .body(responseJson.toString());
         }
 
-        if (TodoDAO.isDueDateInTheFuture(newTodo.getDueDate())) {
+        if (TodoService.isDueDateInTheFuture(newTodo.getDueDate())) {
             todoLogger.error("Error: Can't create new TODO that its due date is in the past | request #{}", requestNumber);
             responseJson.put("errorMessage", "Error: Can't create new TODO that its due date is in the past");
             logDebugIncomingRequest(requestNumber, startTime);
@@ -53,8 +59,8 @@ public class TodoController {
                     .body(responseJson.toString());
         }
 
-        TodoDAO.addNewTODO(newTodo);
-        TodoDTO.promoteNextId();
+        todoService.newTODO(newTodo);
+//        TodoDTO.promoteNextId();
         responseJson.put("result", newTodo.getId());
 
         logDebugIncomingRequest(requestNumber, startTime);
@@ -74,7 +80,7 @@ public class TodoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        responseJson.put("result", String.valueOf(TodoDAO.getTodosCount(status)));
+        responseJson.put("result", todoService.getTodosCount(status));
         logDebugIncomingRequest(requestNumber, startTime);
 
         return ResponseEntity.ok().body(responseJson.toString());
@@ -82,12 +88,12 @@ public class TodoController {
 
     @GetMapping("/todo/content")
     @ResponseBody
-    public ResponseEntity<List<TodoDTO>> getTodosData(@RequestParam(name = "status") String status,
-                                                      @RequestParam(name = "sortBy", defaultValue = "ID") String sortBy) {
+    public ResponseEntity<List<Todo>> getTodosData(@RequestParam(name = "status") String status,
+                                                   @RequestParam(name = "sortBy", defaultValue = "ID") String sortBy) {
         long startTime = System.currentTimeMillis();
         requestNumber++;
         logInfoIncomingRequest(requestNumber, "/todo/content","GET");
-        List<TodoDTO> todos = TodoDAO.getTodos(status, sortBy);
+        List<Todo> todos = todoService.getTodos(status, sortBy);
         logDebugIncomingRequest(requestNumber, startTime);
 
         return ResponseEntity.ok().body(todos);
@@ -96,15 +102,15 @@ public class TodoController {
     @RequestMapping(value = "/todo", method = RequestMethod.PUT)
     @ResponseBody
     public ResponseEntity<String> updateTodoStatus(@RequestParam("id") int id,
-                                                   @RequestParam("status") String status) {
+                                                   @RequestParam("status") String state) {
         long startTime = System.currentTimeMillis();
         requestNumber++;
         logInfoIncomingRequest(requestNumber, "/todo","PUT");
         JSONObject responseJson = new JSONObject();
 
-        todoLogger.info("Update TODO id [{}] state to {} | request #{}", id, status, requestNumber);
+        todoLogger.info("Update TODO id [{}] state to {} | request #{}", id, state, requestNumber);
 
-        if (!TodoDAO.isTodoExistsById(id)) {
+        if (!todoService.existenceById(id)) {
             todoLogger.error("Error: no such TODO with id {} | request #{}", id, requestNumber);
             responseJson.put("errorMessage", "Error: no such TODO with id " + id);
             logDebugIncomingRequest(requestNumber, startTime);
@@ -112,12 +118,12 @@ public class TodoController {
                     .body(responseJson.toString());
         }
 
-        if (!TodoDAO.isStatusValid(status)) {
+        if (!TodoService.isStateValid(state)) {
             logDebugIncomingRequest(requestNumber, startTime);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        responseJson.put("result", TodoDAO.updateTodoStatus(id, status));
+        responseJson.put("result", todoService.updateTodoState(id, state));
         logDebugIncomingRequest(requestNumber, startTime);
 
         return ResponseEntity.ok().body(responseJson.toString());
@@ -131,7 +137,7 @@ public class TodoController {
         logInfoIncomingRequest(requestNumber, "/todo","DELETE");
         JSONObject responseJson = new JSONObject();
 
-        if (!TodoDAO.isTodoExistsById(id)) {
+        if (!todoService.existenceById(id)) {
             todoLogger.error("Error: no such TODO with id {} | request #{}", id, requestNumber);
             responseJson.put("errorMessage", "Error: no such TODO with id " + id);
             logDebugIncomingRequest(requestNumber, startTime);
@@ -140,7 +146,7 @@ public class TodoController {
                     .body(responseJson.toString());
         }
 
-        responseJson.put("result", String.valueOf(TodoDAO.deleteTodoById(id)));
+        responseJson.put("result", String.valueOf(todoService.deleteTodoById(id)));
         logDebugIncomingRequest(requestNumber, startTime);
 
         return ResponseEntity.ok().body(responseJson.toString());

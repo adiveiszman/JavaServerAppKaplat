@@ -21,7 +21,7 @@
     <logger name="com.controller.TodoController" level="INFO">
         <appender-ref ref="request-logger" />
     </logger>
-    <logger name="com.dao.TodoDAO" level="INFO">
+    <logger name="com.services.TodoService" level="INFO">
         <appender-ref ref="todo-logger" />
     </logger>
 <!--    <root level="INFO">

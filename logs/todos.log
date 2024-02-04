@@ -1,0 +1,4 @@
+04-02-2024 13:55:14.161 ERROR: Error: no such TODO with id 6 | request #1
+04-02-2024 13:55:20.826 INFO: Removing todo id 1 | request #2
+04-02-2024 13:55:32.300 INFO: Total TODOs count for state ALL is 1 | request #3
+04-02-2024 13:55:37.391 INFO: Extracting todos content. Filter: ALL | Sorting by: TITLE | request #4
