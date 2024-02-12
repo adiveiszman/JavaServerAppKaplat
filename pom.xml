@@ -56,6 +56,12 @@
             <artifactId>postgresql</artifactId>
             <version>42.2.24</version>
         </dependency>
+
+        <!-- Spring Data MongoDB -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
     </dependencies>
 
     <properties>
@@ -67,6 +73,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.1.6.RELEASE</version>
             </plugin>
         </plugins>
     </build>

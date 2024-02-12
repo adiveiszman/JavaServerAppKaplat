@@ -7,12 +7,10 @@ import java.io.Serializable;
 @Entity
 @Table(name= "todos")
 @JsonIgnoreProperties({"hibernateLazyInitializer"})
-public class Todo implements Serializable {
-
+public class TodoPostgres implements Serializable, TodoBase {
     @Id
     @Column(name = "rawid", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -21,24 +19,43 @@ public class Todo implements Serializable {
     private String content;
 
     @Column(name = "duedate", nullable = false)
-    private Long dueDate;
+    private Long duedate;
 
     @Column(name = "state", nullable = false)
     private String state = "PENDING";
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public TodoPostgres() {}
 
+    public TodoPostgres(int id, String title, String content, Long duedate) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.duedate = duedate;
+    }
+
+    @Override
+    public Integer getId() { return id; }
+    @Override
+    public void setId(Integer id) { this.id = id; }
+
+    @Override
     public String getTitle() { return title; }
+    @Override
     public void setTitle(String title) { this.title = title; }
 
+    @Override
     public String getContent() { return content; }
+    @Override
     public void setContent(String  content) { this.content = content; }
 
-    public Long getDueDate() { return dueDate; }
-    public void setDueDate(Long dueDate) { this.dueDate = dueDate; }
+    @Override
+    public Long getDuedate() { return duedate; }
+    @Override
+    public void setDuedate(Long duedate) { this.duedate = duedate; }
 
+    @Override
     public String getState() { return state; }
+    @Override
     public void setState(String state) { this.state = state; }
 
     @Override
@@ -47,7 +64,7 @@ public class Todo implements Serializable {
                 "id = " + id +
                 ", title = " + title +
                 ", content = " + content +
-                ", duedate = " + dueDate +
+                ", duedate = " + duedate +
                 ", state = '" + state + '\'' +
                 '}';
     }
